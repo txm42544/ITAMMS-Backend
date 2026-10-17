@@ -48,3 +48,7 @@ env
 .env
 
 .sf/orgs/
+.docs/
+
+# Docs (private plan, not committed)
+/docs
