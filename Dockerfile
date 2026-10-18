@@ -3,13 +3,13 @@ FROM node:20-alpine AS builder
 
 WORKDIR /app
 
-# Install pnpm
-RUN npm install -g pnpm
+# Install pnpm (v9 - same major as the working CompanyManagementBE project)
+RUN npm install -g pnpm@9.15.4
 
-# Copy package files first for better layer caching
+# Copy package files
 COPY package.json pnpm-lock.yaml ./
 
-# Install all dependencies (dev + prod) needed to build
+# Install dependencies using pnpm
 RUN pnpm install --frozen-lockfile
 
 # Copy source code
@@ -17,8 +17,6 @@ COPY . .
 
 # Build the application
 RUN pnpm run build
-# Prune dev dependencies to keep only prod in final stage
-RUN pnpm prune --prod
 
 # Production stage
 FROM node:20-alpine AS production
@@ -26,13 +24,15 @@ FROM node:20-alpine AS production
 WORKDIR /app
 
 # Install pnpm
-RUN npm install -g pnpm
+RUN npm install -g pnpm@9.15.4
 
-# Copy package files and production node_modules from builder
+# Copy package files
 COPY package.json pnpm-lock.yaml ./
-COPY --from=builder /app/node_modules ./node_modules
 
-# Copy built application
+# Install only production dependencies
+RUN pnpm install --prod --frozen-lockfile && pnpm store prune
+
+# Copy built application from builder stage
 COPY --from=builder /app/dist ./dist
 
 # Create non-root user for security
@@ -50,7 +50,7 @@ EXPOSE 5000
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-  CMD wget --no-verbose --tries=1 --spider http://localhost:5000/api/v1/health || exit 1
+  CMD wget --no-verbose --tries=1 --spider http://localhost:5000/api/v1 || exit 1
 
 # Start the application
 CMD ["node", "dist/main"]
