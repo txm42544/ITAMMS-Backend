@@ -35,7 +35,7 @@ import { UsersModule } from './modules/users/users.module';
     MongooseModule.forRootAsync({
       inject: [ConfigService],
       useFactory: (config: ConfigService) => ({
-        uri: config.getOrThrow<string>('MONGO_URI'),
+        uri: config.getOrThrow<string>('MONGODB_URI'),
       }),
     }),
     ThrottlerModule.forRoot([{ ttl: 60000, limit: 120 }]),

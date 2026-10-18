@@ -5,7 +5,7 @@ export const envValidationSchema = Joi.object({
     .valid('development', 'production', 'test')
     .default('development'),
   PORT: Joi.number().default(5000),
-  MONGO_URI: Joi.string().required(),
+  MONGODB_URI: Joi.string().required(),
 
   JWT_ACCESS_SECRET: Joi.string().min(16).required(),
   JWT_ACCESS_EXPIRES_IN: Joi.string().default('1h'),
